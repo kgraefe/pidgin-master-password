@@ -1,0 +1,7 @@
+/.stamp*
+/Makefile
+/local.mak
+config.h
+configure.ac
+*.[do]
+*.dll

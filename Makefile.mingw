@@ -1,0 +1,55 @@
+PLUGIN = purple-master-password
+
+PLUGIN_TOP := .
+-include $(PLUGIN_TOP)/local.mak
+PIDGIN_TREE_TOP ?= ../../..
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+PLUGIN_VERSION := $(shell ./scripts/gen-version.sh)
+PLUGIN_WIN32_ZIP := $(PLUGIN)-$(PLUGIN_VERSION)-win32.zip
+
+SRC=$(wildcard src/*.c)
+OBJ=$(SRC:%.c=%.o)
+DEP=$(SRC:%.c=%.d)
+
+CFLAGS += -MMD -MP
+
+CFLAGS += -I$(PLUGIN_TOP)
+CFLAGS += -I$(PURPLE_TOP)
+CFLAGS += -I$(GTK_TOP)/include
+CFLAGS += -I$(GTK_TOP)/include/glib-2.0
+CFLAGS += -I$(GTK_TOP)/lib/glib-2.0/include
+
+DLL_LD_FLAGS += \
+	-L$(PURPLE_TOP) -lpurple \
+	-L$(GTK_TOP)/lib -lglib-2.0
+
+all: build
+
+build: src/$(PLUGIN).dll $(LANG_CATALOGS)
+
+src/$(PLUGIN).dll: $(OBJ)
+	$(CC) -shared $(OBJ) $(DLL_LD_FLAGS) -o $@
+
+$(OBJ): config.h
+
+config.h: .stamp-version-$(PLUGIN_VERSION) configure.ac scripts/gen-mingw-config_h.sh
+	./scripts/gen-mingw-config_h.sh > config.h
+
+.stamp-version-$(PLUGIN_VERSION):
+	rm -f .stamp-version*
+	touch $@
+
+# If configure.ac.in exists, we generate configure.ac. Otherwise we assume that
+# configure.ac exists (as in the release tarball).
+ifneq ("$(wildcard configure.ac.in)", "")
+configure.ac: configure.ac.in .stamp-version-$(PLUGIN_VERSION) ./scripts/gen-configure_ac.sh
+	./scripts/gen-configure_ac.sh
+endif
+
+clean:
+	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
+	rm -f config.h .stamp-version* 
+	test -e configure.ac.in && rm -f configure.ac
+
+-include $(DEP)
