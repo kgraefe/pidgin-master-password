@@ -19,10 +19,13 @@ CFLAGS += -I$(PURPLE_TOP)
 CFLAGS += -I$(GTK_TOP)/include
 CFLAGS += -I$(GTK_TOP)/include/glib-2.0
 CFLAGS += -I$(GTK_TOP)/lib/glib-2.0/include
+CFLAGS += -I$(NSS_TOP)/include
 
 DLL_LD_FLAGS += \
 	-L$(PURPLE_TOP) -lpurple \
-	-L$(GTK_TOP)/lib -lglib-2.0
+	-L$(GTK_TOP)/lib -lglib-2.0 \
+	-L$(NSS_TOP)/lib -lnss3 \
+	-lintl
 
 all: build
 

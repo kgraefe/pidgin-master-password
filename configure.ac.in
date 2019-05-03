@@ -15,6 +15,7 @@ AC_DEFINE_UNQUOTED(PLUGIN_WEBSITE, [""], [Website])
 AC_DEFINE_UNQUOTED(PLUGIN_ID, ["purple-kgraefe-master-password"], [Pidgin internal plugin ID])
 AC_DEFINE_UNQUOTED(PLUGIN_STATIC_NAME, ["master-password"], [Static name for debug output])
 AC_DEFINE_UNQUOTED(PLUGIN_AUTHOR, ["Konrad Gräfe <konradgraefe@aol.com>"], [Author])
+AC_DEFINE_UNQUOTED(PLUGIN_PREFS_PREFIX, ["/plugins/master-password"], [Preference path])
 
 
 # Checks for programs.
