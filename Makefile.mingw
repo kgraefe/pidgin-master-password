@@ -1,4 +1,4 @@
-PLUGIN = purple-master-password
+PLUGIN = pidgin-master-password
 
 PLUGIN_TOP := .
 -include $(PLUGIN_TOP)/local.mak
@@ -16,23 +16,29 @@ CFLAGS += -MMD -MP
 
 CFLAGS += -I$(PLUGIN_TOP)
 CFLAGS += -I$(PURPLE_TOP)
+CFLAGS += -I$(PIDGIN_TOP) -I$(PIDGIN_TOP)/win32
 CFLAGS += -I$(GTK_TOP)/include
 CFLAGS += -I$(GTK_TOP)/include/glib-2.0
+CFLAGS += -I$(GTK_TOP)/include/gtk-2.0
 CFLAGS += -I$(GTK_TOP)/lib/glib-2.0/include
+CFLAGS += -I$(GTK_TOP)/include/atk-1.0
+CFLAGS += -I$(GTK_TOP)/include/pango-1.0
+CFLAGS += -I$(GTK_TOP)/include/cairo
+CFLAGS += -I$(GTK_TOP)/lib/gtk-2.0/include
 CFLAGS += -I$(NSS_TOP)/include
 
-DLL_LD_FLAGS += \
-	-L$(PURPLE_TOP) -lpurple \
-	-L$(GTK_TOP)/lib -lglib-2.0 \
-	-L$(NSS_TOP)/lib -lnss3 \
-	-lintl
+LDFLAGS += -L$(PURPLE_TOP) -lpurple
+LDFLAGS += -L$(PIDGIN_TOP) -lpidgin
+LDFLAGS += -L$(GTK_TOP)/lib -lglib-2.0 -lgtk-win32-2.0 -lgobject-2.0
+LDFLAGS += -L$(NSS_TOP)/lib -lnss3
+LDFLAGS += -lintl -lssp
 
 all: build
 
 build: src/$(PLUGIN).dll $(LANG_CATALOGS)
 
 src/$(PLUGIN).dll: $(OBJ)
-	$(CC) -shared $(OBJ) $(DLL_LD_FLAGS) -o $@
+	$(CC) -shared $(OBJ) $(LDFLAGS) -o $@
 
 $(OBJ): config.h
 

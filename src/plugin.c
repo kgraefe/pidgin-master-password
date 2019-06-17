@@ -7,10 +7,27 @@
 #include "plugin.h"
 #include "masterkey.h"
 
+typedef struct
+{
+	PurpleRequestType type;
+
+	void *user_data;
+	GtkWidget *dialog;
+
+	/* ... */
+} PidginRequestData;
+
 static PurplePlugin *plugin = NULL;
 static struct MasterKey *key = NULL;
+static gboolean cancelled;
 
-static void init_masterkey(void);
+static void dialog_cancel_cb(
+	void *user_data, PurpleRequestFields *fields
+) {
+	cancelled = TRUE;
+}
+
+static GtkDialog *init_masterkey(void);
 static void init_masterkey_cb(
 	void *user_data, PurpleRequestFields *fields
 ) {
@@ -26,14 +43,18 @@ static void init_masterkey_cb(
 		debug("Master Key Hash: %s\n", hash);
 		purple_prefs_set_string(PLUGIN_PREFS_PREFIX "/password", hash);
 		g_free(hash);
-	} else {
+	} else if(gtk_main_level() != 0) {
+		/* The passwords do not match. Issue the dialog again. If we are
+		 * running at Pidgin's startup this will be handled in plugin_load().
+		 */
 		init_masterkey();
 	}
 }
-static void init_masterkey(void) {
+static GtkDialog *init_masterkey(void) {
 	PurpleRequestFields *fields;
 	PurpleRequestField *f;
 	PurpleRequestFieldGroup *group;
+	PidginRequestData *data;
 
 	group = purple_request_field_group_new(NULL);
 
@@ -54,30 +75,37 @@ static void init_masterkey(void) {
 	fields = purple_request_fields_new();
 	purple_request_fields_add_group(fields, group);
 
-	purple_request_fields(plugin,
+	data = purple_request_fields(plugin,
 		_("Master Password"), _("Enter new master password:"), NULL, fields,
 		_("OK"), G_CALLBACK(init_masterkey_cb),
-		_("Cancel"), G_CALLBACK(NULL),
+		_("Cancel"), G_CALLBACK(dialog_cancel_cb),
 		NULL, NULL, NULL, NULL
 	);
+	return (data ? GTK_DIALOG(data->dialog) : NULL);
 }
 
-static void unlock_masterkey(void);
+static GtkDialog *unlock_masterkey(void);
 static void unlock_masterkey_cb(
-	void *user_data, PurpleRequestFields *fields
+	void *data, PurpleRequestFields *fields
 ) {
 	key = masterkey_from_hash(
 		purple_request_fields_get_string(fields, "masterpassword"),
 		purple_prefs_get_string(PLUGIN_PREFS_PREFIX "/password")
 	);
 	if(!key) {
-		unlock_masterkey();
+		/* The password is not correct. Issue the dialog again. If we are
+		 * running at Pidgin's startup this will be handled in plugin_load().
+		 */
+		if(gtk_main_level() != 0) {
+			unlock_masterkey();
+		}
 	}
 }
-static void unlock_masterkey(void) {
+static GtkDialog *unlock_masterkey(void) {
 	PurpleRequestFields *fields;
 	PurpleRequestField *f;
 	PurpleRequestFieldGroup *group;
+	PidginRequestData *data;
 
 	group = purple_request_field_group_new(NULL);
 
@@ -91,22 +119,36 @@ static void unlock_masterkey(void) {
 	fields = purple_request_fields_new();
 	purple_request_fields_add_group(fields, group);
 
-	purple_request_fields(plugin,
+	data = purple_request_fields(plugin,
 		_("Master Password"), _("Enter master password:"), NULL, fields,
 		_("OK"), G_CALLBACK(unlock_masterkey_cb),
-		_("Cancel"), G_CALLBACK(NULL),
+		_("Cancel"), G_CALLBACK(dialog_cancel_cb),
 		NULL, NULL, NULL, NULL
 	);
+	return (data ? GTK_DIALOG(data->dialog) : NULL);
 }
 
 static gboolean plugin_load(PurplePlugin *p) {
+	GtkDialog *dialog;
+
 	plugin = p;
 
-	if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
-		unlock_masterkey();
-	} else {
-		init_masterkey();
-	}
+	/* Issue either unlock or init dialog. If we are running at Pidgin's
+	 * startup we block here using gtk_dialog_run() to avoid protocols to
+	 * connect before we are fully initialized.
+	 */
+	cancelled = (gtk_main_level() != 0);
+	do {
+		if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
+			dialog = unlock_masterkey();
+		} else {
+			dialog = init_masterkey();
+		}
+
+		if(gtk_main_level() == 0) {
+			gtk_dialog_run(dialog);
+		}
+	} while(!key && !cancelled);
 
 	debug("Master password plugin loaded.\n");
 	return TRUE;
@@ -127,7 +169,7 @@ static PurplePluginInfo info = {
 	PURPLE_MAJOR_VERSION,
 	PURPLE_MINOR_VERSION,
 	PURPLE_PLUGIN_STANDARD,     /* type           */
-	NULL,                       /* ui_requirement */
+	PIDGIN_PLUGIN_TYPE,         /* ui_requirement */
 	0,                          /* flags          */
 	NULL,                       /* dependencies   */
 	PURPLE_PRIORITY_DEFAULT,    /* priority       */

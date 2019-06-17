@@ -9,6 +9,8 @@
 #include "config.h"
 
 #include <purple.h>
+#include <pidgin.h>
+#include <gtkplugin.h>
 #include <glib.h>
 
 #if GLIB_CHECK_VERSION(2,4,0)
