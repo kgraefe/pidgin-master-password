@@ -8,8 +8,6 @@
 
 #include "plugin.h"
 
-#include <pk11pub.h>
-
 #define MASTER_KEY_LEN 32
 
 struct MasterKey {
@@ -26,8 +24,21 @@ struct MasterKey {
 };
 
 static guchar *random(size_t len) {
-	PK11SlotInfo *slot = NULL;
+	PurpleCipher *cipher;
+	PurpleCipherContext *ctx = NULL;
 	guchar *buf = NULL;
+	size_t outLen;
+
+	cipher = purple_ciphers_find_cipher("random");
+	if(!cipher) {
+		error("Could not find cipher 'random'!\n");
+		goto error;
+	}
+	ctx = purple_cipher_context_new(cipher, NULL);
+	if(!ctx) {
+		error("Could not create cipher context!\n");
+		goto error;
+	}
 
 	buf = g_malloc(len);
 	if(!buf) {
@@ -35,24 +46,24 @@ static guchar *random(size_t len) {
 		goto error;
 	}
 
-	slot = PK11_GetInternalSlot();
-	if(!slot) {
-		error("Could not get PK11 slot!\n");
+	if(!purple_cipher_context_digest(ctx,
+		len, buf, &outLen
+	)) {
+		error("Could not generate random bytes!\n");
+		goto error;
+	}
+	if(outLen != len) {
+		error("Could not generate enough random bytes!\n");
 		goto error;
 	}
 
-	if(PK11_GenerateRandomOnSlot(slot, buf, len) != SECSuccess) {
-		error("Could not generate random bytes\n");
-		goto error;
-	}
-
-	PK11_FreeSlot(slot);
+	purple_cipher_context_destroy(ctx);
 
 	return buf;
 
 error:
-	if(slot) {
-		PK11_FreeSlot(slot);
+	if(ctx) {
+		purple_cipher_context_destroy(ctx);
 	}
 	g_free(buf);
 	return NULL;

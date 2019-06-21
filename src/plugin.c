@@ -198,7 +198,6 @@ static PurplePluginInfo info = {
 };
 
 static void init_plugin(PurplePlugin *plugin) {
-	info.dependencies = g_list_prepend(info.dependencies, "ssl-nss");
 	info.dependencies = g_list_prepend(info.dependencies, "purple-kgraefe-more-ciphers");
 
 	info.name        = _("Master Password");

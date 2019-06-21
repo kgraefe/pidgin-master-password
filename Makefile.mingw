@@ -25,12 +25,10 @@ CFLAGS += -I$(GTK_TOP)/include/atk-1.0
 CFLAGS += -I$(GTK_TOP)/include/pango-1.0
 CFLAGS += -I$(GTK_TOP)/include/cairo
 CFLAGS += -I$(GTK_TOP)/lib/gtk-2.0/include
-CFLAGS += -I$(NSS_TOP)/include
 
 LDFLAGS += -L$(PURPLE_TOP) -lpurple
 LDFLAGS += -L$(PIDGIN_TOP) -lpidgin
 LDFLAGS += -L$(GTK_TOP)/lib -lglib-2.0 -lgtk-win32-2.0 -lgobject-2.0
-LDFLAGS += -L$(NSS_TOP)/lib -lnss3
 LDFLAGS += -lintl -lssp
 
 all: build
