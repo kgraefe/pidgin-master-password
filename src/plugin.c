@@ -21,6 +21,65 @@ static PurplePlugin *plugin = NULL;
 static struct MasterKey *key = NULL;
 static gboolean cancelled;
 
+static void account_decrypt(PurpleAccount *account) {
+	const char *encrypted;
+	gchar *password;
+
+	if(!key) {
+		return;
+	}
+	if(purple_account_get_password(account)) {
+		return;
+	}
+
+	encrypted = purple_account_get_string(account, "password-encrypted", NULL);
+	if(!encrypted) {
+		return;
+	}
+
+	password = masterkey_decrypt_password(key, encrypted);
+	if(!password) {
+		error(
+			"Could not decrypt password for %s (%s)\n",
+			purple_account_get_username(account),
+			purple_account_get_protocol_name(account)
+		);
+		return;
+	}
+
+	purple_account_set_password(account, password);
+	purple_account_set_remember_password(account, FALSE);
+}
+static void account_encrypt(PurpleAccount *account) {
+	const char *password;
+	gchar *encrypted;
+
+	if(!key) {
+		return;
+	}
+
+	password = purple_account_get_password(account);
+	if(!password) {
+		return;
+	}
+
+	encrypted = masterkey_encrypt_password(key, password);
+	if(!encrypted) {
+		error(
+			"Could not encrypt password for %s (%s)\n",
+			purple_account_get_username(account),
+			purple_account_get_protocol_name(account)
+		);
+		return;
+	}
+
+	purple_account_set_password(account, NULL);
+	purple_account_set_remember_password(account, FALSE);
+
+	purple_account_set_string(account, "password-encrypted", encrypted);
+	g_free(encrypted);
+}
+
 static void dialog_cancel_cb(
 	void *user_data, PurpleRequestFields *fields
 ) {
@@ -33,6 +92,7 @@ static void init_masterkey_cb(
 ) {
 	const char *a, *b;
 	gchar *hash;
+	GList *l;
 
 	a = purple_request_fields_get_string(fields, "passwordA");
 	b = purple_request_fields_get_string(fields, "passwordB");
@@ -43,6 +103,11 @@ static void init_masterkey_cb(
 		debug("Master Key Hash: %s\n", hash);
 		purple_prefs_set_string(PLUGIN_PREFS_PREFIX "/password", hash);
 		g_free(hash);
+
+		/* Encrypt all stored passwords */
+		for(l = purple_accounts_get_all(); l; l = l->next) {
+			account_encrypt((PurpleAccount *)l->data);
+		}
 	} else if(gtk_main_level() != 0) {
 		/* The passwords do not match. Issue the dialog again. If we are
 		 * running at Pidgin's startup this will be handled in plugin_load().
@@ -88,11 +153,18 @@ static GtkDialog *unlock_masterkey(void);
 static void unlock_masterkey_cb(
 	void *data, PurpleRequestFields *fields
 ) {
+	GList *l;
+
 	key = masterkey_from_hash(
 		purple_request_fields_get_string(fields, "masterpassword"),
 		purple_prefs_get_string(PLUGIN_PREFS_PREFIX "/password")
 	);
-	if(!key) {
+	if(key) {
+		/* Encrypt all stored passwords */
+		for(l = purple_accounts_get_all(); l; l = l->next) {
+			account_encrypt((PurpleAccount *)l->data);
+		}
+	} else {
 		/* The password is not correct. Issue the dialog again. If we are
 		 * running at Pidgin's startup this will be handled in plugin_load().
 		 */
@@ -128,6 +200,13 @@ static GtkDialog *unlock_masterkey(void) {
 	return (data ? GTK_DIALOG(data->dialog) : NULL);
 }
 
+static void account_connecting_cb(PurpleAccount *account, void *data) {
+	account_decrypt(account);
+}
+static void account_signed_on_cb(PurpleAccount *account, void *data) {
+	account_encrypt(account);
+}
+
 static gboolean plugin_load(PurplePlugin *p) {
 	GtkDialog *dialog;
 
@@ -150,6 +229,15 @@ static gboolean plugin_load(PurplePlugin *p) {
 		}
 	} while(!key && !cancelled);
 
+	purple_signal_connect(purple_accounts_get_handle(),
+		"account-connecting", plugin,
+		PURPLE_CALLBACK(account_connecting_cb), NULL
+	);
+	purple_signal_connect(purple_accounts_get_handle(),
+		"account-signed-on", plugin,
+		PURPLE_CALLBACK(account_signed_on_cb), NULL
+	);
+
 	debug("Master password plugin loaded.\n");
 	return TRUE;
 }
@@ -160,6 +248,7 @@ static gboolean plugin_unload(PurplePlugin *p) {
 		key = NULL;
 	}
 	purple_request_close_with_handle(plugin);
+	purple_signals_disconnect_by_handle(plugin);
 	debug("Master password plugin unloaded.\n");
 	return TRUE;
 }

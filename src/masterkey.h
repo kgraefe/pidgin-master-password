@@ -11,6 +11,8 @@
 struct MasterKey;
 
 gchar *masterkey_get_hash(struct MasterKey *);
+gchar *masterkey_encrypt_password(struct MasterKey *, const char *password);
+gchar *masterkey_decrypt_password(struct MasterKey *, const gchar *crypted);
 
 struct MasterKey *masterkey_create(const gchar *password);
 

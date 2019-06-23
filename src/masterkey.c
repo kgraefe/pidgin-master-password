@@ -9,6 +9,8 @@
 #include "plugin.h"
 
 #define MASTER_KEY_LEN 32
+#define PASSWORD_IV_LEN 12
+#define PASSWORD_TAG_LEN 16
 
 struct MasterKey {
 	guchar *key;
@@ -280,6 +282,178 @@ exit:
 	 * free'd using g_free().
 	 */
 	return g_string_free(str, !success);
+}
+gchar *masterkey_encrypt_password(struct MasterKey *key, const char *password) {
+	PurpleCipher *cipher;
+	PurpleCipherContext *ctx = NULL;
+	guchar *digest = NULL, *iv = NULL;
+	gchar *digestStr = NULL, *ivStr = NULL, *cryptStr = NULL;
+	size_t digestLen;
+
+	/* Initialize AES-GCM cipher */
+	cipher = purple_ciphers_find_cipher("aes-gcm");
+	if(!cipher) {
+		error("Could not find cipher 'aes-gcm'!\n");
+		goto error;
+	}
+	ctx = purple_cipher_context_new(cipher, NULL);
+	if(!ctx) {
+		error("Could not create cipher context!\n");
+		goto error;
+	}
+
+	/* Generate and set IV */
+	iv = random(PASSWORD_IV_LEN);
+	if(!iv) {
+		goto error;
+	}
+	purple_cipher_context_set_iv(ctx, iv, PASSWORD_IV_LEN);
+
+	/* Set AES key and GCM tag length */
+	purple_cipher_context_set_key_with_len(ctx, key->key, key->keyLen);
+	purple_cipher_context_set_option(ctx,
+		"taglen", GINT_TO_POINTER(PASSWORD_TAG_LEN)
+	);
+
+
+	/* Encrypt (result length will be input length + tag length) */
+	digestLen = strlen(password) + PASSWORD_TAG_LEN;
+	digest = g_malloc(digestLen);
+	if(!digest) {
+		error("Could not allocate memory!\n");
+		goto error;
+	}
+	if(!purple_cipher_context_encrypt(ctx,
+		(const guchar *)password, strlen(password), digest, &digestLen
+	) < 0) {
+		error("Could not encrypt!\n");
+		goto error;
+	}
+
+	/* Build digest string */
+	ivStr = g_base64_encode(iv, PASSWORD_IV_LEN);
+	if(!ivStr) {
+		goto error;
+	}
+	digestStr = g_base64_encode(digest, digestLen);
+	if(!digestStr) {
+		goto error;
+	}
+	cryptStr = g_strdup_printf("$1$%s$%s$", ivStr, digestStr);
+	if(!cryptStr) {
+		error("Could not allocate memory!\n");
+		goto error;
+	}
+
+	g_free(digestStr);
+	g_free(ivStr);
+	g_free(iv);
+	g_free(digest);
+	purple_cipher_context_destroy(ctx);
+
+	return cryptStr;
+
+error:
+	g_free(cryptStr);
+	g_free(digestStr);
+	g_free(ivStr);
+	g_free(iv);
+	g_free(digest);
+	if(ctx) {
+		purple_cipher_context_destroy(ctx);
+	}
+	return NULL;
+}
+gchar *masterkey_decrypt_password(struct MasterKey *key, const gchar *crypted) {
+	PurpleCipher *cipher;
+	PurpleCipherContext *ctx = NULL;
+	guchar *digest = NULL, *iv = NULL;
+	gchar *password = NULL;
+	gsize digestLen, ivLen, passwordLen;
+	gchar **fields = NULL;
+
+	/* Parse crypted string.
+	 * Format: $1$iv$encryptedpassword$
+	 */
+	fields = g_strsplit(crypted, "$", -1);
+	if(!fields) {
+		error("Could not parse encrypted string!\n");
+		goto error;
+	}
+	if(!fields[0] || *fields[0] != '\0') {
+		error("Could not parse encrypted string: Invalid start\n");
+		goto error;
+	}
+	if(!fields[1] || !purple_strequal(fields[1], "1")) {
+		error("Could not parse encrypted string: Invalid algorithm\n");
+		goto error;
+	}
+	if(!fields[2] || !(iv = g_base64_decode(fields[2], &ivLen))) {
+		error("Could not parse encrypted string: Invalid IV\n");
+		goto error;
+	}
+	if(!fields[3] || !(digest = g_base64_decode(fields[3], &digestLen))) {
+		error("Could not parse encrypted string: Invalid ciphertext\n");
+		goto error;
+	}
+	if(!fields[4] || *fields[4] != '\0') {
+		error("Could not parse encrypted string: Invalid end\n");
+		goto error;
+	}
+
+	/* Initialize AES-GCM cipher */
+	cipher = purple_ciphers_find_cipher("aes-gcm");
+	if(!cipher) {
+		error("Could not find cipher 'aes-gcm'!\n");
+		goto error;
+	}
+	ctx = purple_cipher_context_new(cipher, NULL);
+	if(!ctx) {
+		error("Could not create cipher context!\n");
+		goto error;
+	}
+
+	/* Set IV, AES key and GCM tag length */
+	purple_cipher_context_set_key_with_len(ctx, key->key, key->keyLen);
+	purple_cipher_context_set_iv(ctx, iv, ivLen);
+	purple_cipher_context_set_option(ctx,
+		"taglen", GINT_TO_POINTER(PASSWORD_TAG_LEN)
+	);
+
+	/* Decrypt (buffer length must be input length) */
+	password = g_malloc(digestLen);
+	if(!password) {
+		error("Could not allocate memory!\n");
+		goto error;
+	}
+	if(!purple_cipher_context_decrypt(ctx,
+		digest, digestLen, (guchar *)password, &passwordLen
+	) < 0) {
+		error("Could not decrypt!\n");
+		goto error;
+	}
+
+	/* Make sure the password is NULL terminated.
+	 * (The buffer should be larger than the actual password anyway due to the
+	 * tag appended to the ciphertext but we're still checking.)
+	 */
+	if(passwordLen >= digestLen) {
+		goto error;
+	}
+	password[passwordLen] = '\0';
+
+	purple_cipher_context_destroy(ctx);
+	g_strfreev(fields);
+
+	return password;
+
+error:
+	g_free(password);
+	if(ctx) {
+		purple_cipher_context_destroy(ctx);
+	}
+	g_strfreev(fields);
+	return NULL;
 }
 
 struct MasterKey *masterkey_create(const gchar *password) {
