@@ -141,12 +141,20 @@ static GtkDialog *init_masterkey(void) {
 	purple_request_fields_add_group(fields, group);
 
 	data = purple_request_fields(plugin,
-		_("Master Password"), _("Enter new master password:"), NULL, fields,
+		_("Pidgin Master Password"), _("Enter new master password:"), NULL, fields,
 		_("OK"), G_CALLBACK(init_masterkey_cb),
 		_("Cancel"), G_CALLBACK(dialog_cancel_cb),
 		NULL, NULL, NULL, NULL
 	);
-	return (data ? GTK_DIALOG(data->dialog) : NULL);
+	if(!data) {
+		return NULL;
+	}
+
+#ifdef _WIN32
+	gtk_window_set_title(GTK_WINDOW(data->dialog), _("Pidgin Master Password"));
+#endif
+
+	return GTK_DIALOG(data->dialog);
 }
 
 static GtkDialog *unlock_masterkey(void);
@@ -192,12 +200,20 @@ static GtkDialog *unlock_masterkey(void) {
 	purple_request_fields_add_group(fields, group);
 
 	data = purple_request_fields(plugin,
-		_("Master Password"), _("Enter master password:"), NULL, fields,
+		_("Pidgin Master Password"), _("Enter master password:"), NULL, fields,
 		_("OK"), G_CALLBACK(unlock_masterkey_cb),
 		_("Cancel"), G_CALLBACK(dialog_cancel_cb),
 		NULL, NULL, NULL, NULL
 	);
-	return (data ? GTK_DIALOG(data->dialog) : NULL);
+	if(!data) {
+		return NULL;
+	}
+
+#ifdef _WIN32
+	gtk_window_set_title(GTK_WINDOW(data->dialog), _("Pidgin Master Password"));
+#endif
+
+	return GTK_DIALOG(data->dialog);
 }
 
 static void account_connecting_cb(PurpleAccount *account, void *data) {
