@@ -5,3 +5,4 @@ config.h
 configure.ac
 *.[do]
 *.dll
+*.gmo
