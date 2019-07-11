@@ -5,6 +5,9 @@
  */
 
 #include "plugin.h"
+
+#include <sodium.h>
+
 #include "masterkey.h"
 
 typedef struct
@@ -237,6 +240,11 @@ static void account_signed_on_cb(PurpleAccount *account, void *data) {
 static gboolean plugin_load(PurplePlugin *p) {
 	plugin = p;
 
+	if(sodium_init() < 0) {
+		error("Could not initialize libsodium!\n");
+		return FALSE;
+	}
+
 	/* Issue either unlock or init dialog to load/create a master key. */
 	if(gtk_main_level() > 0) {
 		if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
@@ -323,8 +331,6 @@ static PurplePluginInfo info = {
 };
 
 static void init_plugin(PurplePlugin *plugin) {
-	info.dependencies = g_list_prepend(info.dependencies, "purple-kgraefe-more-ciphers");
-
 	info.name        = _("Master Password");
 	info.summary     = _("Protect account passwords by a master password.");
 	info.description = _("Protect account passwords by a master password.");

@@ -5,6 +5,8 @@ PLUGIN_TOP := .
 PIDGIN_TREE_TOP ?= ../../..
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
+LIBSODIUM_TOP=$(WIN32_DEV_TOP)/libsodium-1.0.18-mingw/libsodium-win32
+
 PLUGIN_VERSION := $(shell ./scripts/gen-version.sh)
 PLUGIN_WIN32_ZIP := $(PLUGIN)-$(PLUGIN_VERSION)-win32.zip
 
@@ -28,18 +30,20 @@ CFLAGS += -I$(GTK_TOP)/include/atk-1.0
 CFLAGS += -I$(GTK_TOP)/include/pango-1.0
 CFLAGS += -I$(GTK_TOP)/include/cairo
 CFLAGS += -I$(GTK_TOP)/lib/gtk-2.0/include
+CFLAGS += -I$(LIBSODIUM_TOP)/include
 
 LDFLAGS += -L$(PURPLE_TOP) -lpurple
 LDFLAGS += -L$(PIDGIN_TOP) -lpidgin
 LDFLAGS += -L$(GTK_TOP)/lib -lglib-2.0 -lgtk-win32-2.0 -lgobject-2.0
 LDFLAGS += -lintl -lssp
+LDFLAGS += -L$(LIBSODIUM_TOP)/lib -lsodium
 
 all: build
 
 build: src/$(PLUGIN).dll $(LANG_CATALOGS)
 
 src/$(PLUGIN).dll: $(OBJ)
-	$(CC) -shared $(OBJ) $(LDFLAGS) -o $@
+	$(CC) -shared $+ $(LDFLAGS) -o $@
 
 $(OBJ): config.h
 
