@@ -5,7 +5,7 @@ PLUGIN_TOP := .
 PIDGIN_TREE_TOP ?= ../../..
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
-LIBSODIUM_TOP=$(WIN32_DEV_TOP)/libsodium-1.0.18-mingw/libsodium-win32
+SODIUM_TOP=$(WIN32_DEV_TOP)/libsodium-1.0.18-mingw/libsodium-win32
 
 PLUGIN_VERSION := $(shell ./scripts/gen-version.sh)
 PLUGIN_WIN32_ZIP := $(PLUGIN)-$(PLUGIN_VERSION)-win32.zip
@@ -30,19 +30,34 @@ CFLAGS += -I$(GTK_TOP)/include/atk-1.0
 CFLAGS += -I$(GTK_TOP)/include/pango-1.0
 CFLAGS += -I$(GTK_TOP)/include/cairo
 CFLAGS += -I$(GTK_TOP)/lib/gtk-2.0/include
-CFLAGS += -I$(LIBSODIUM_TOP)/include
+CFLAGS += -I$(SODIUM_TOP)/include
 
 LDFLAGS += -L$(PURPLE_TOP) -lpurple
 LDFLAGS += -L$(PIDGIN_TOP) -lpidgin
 LDFLAGS += -L$(GTK_TOP)/lib -lglib-2.0 -lgtk-win32-2.0 -lgobject-2.0
 LDFLAGS += -lintl -lssp
-LDFLAGS += -L$(LIBSODIUM_TOP)/lib -lsodium
+
+# This is quite a hack to help us link libsodium statically which makes it
+# easier for the users to install the plugin.
+#
+# Pidgin is built against an old version of mingw which does not ship
+# references to the RtlGenRandom/SystemFunction036 function used by libsodium.
+# Strawberry Perl happens to ship a newer version which we use here. Since
+# libadvapi32 is a system library and we are linking it dynamically, this
+# shouldn't cause problems.
+#
+# On pidgin.im [1] Strawberry Perl is called "a good option" but is actually
+# installed when using the pidgin-windev script. So we can call it a build
+# dependency for this plugin without upsetting too many developers.
+#
+# [1]: https://developer.pidgin.im/wiki/BuildingWinPidgin
+LDFLAGS += -L$(WIN32_DEV_TOP)/strawberry-perl-5.20.1/c/i686-w64-mingw32/lib -ladvapi32
 
 all: build
 
 build: src/$(PLUGIN).dll $(LANG_CATALOGS)
 
-src/$(PLUGIN).dll: $(OBJ)
+src/$(PLUGIN).dll: $(OBJ) $(SODIUM_TOP)/lib/libsodium.a
 	$(CC) -shared $+ $(LDFLAGS) -o $@
 
 $(OBJ): config.h
