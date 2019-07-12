@@ -64,6 +64,7 @@ endif
 clean:
 	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
 	rm -f config.h .stamp-version*
+	rm -rf $(LANG_CATALOGS)
 	test -e configure.ac.in && rm -f configure.ac
 
 -include $(DEP)
