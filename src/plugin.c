@@ -240,6 +240,8 @@ static void account_signed_on_cb(PurpleAccount *account, void *data) {
 static gboolean plugin_load(PurplePlugin *p) {
 	plugin = p;
 
+	debug("Using libsodium %s\n", sodium_version_string());
+
 	if(sodium_init() < 0) {
 		error("Could not initialize libsodium!\n");
 		return FALSE;
