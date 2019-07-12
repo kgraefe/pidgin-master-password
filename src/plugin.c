@@ -80,6 +80,24 @@ static void account_encrypt(PurpleAccount *account) {
 	g_free(encrypted);
 }
 
+static void masterkey_loaded_cb(gboolean new) {
+	gchar *hash;
+	GList *l;
+
+	if(new) {
+		hash = masterkey_get_hash(key);
+		debug("Master Key Hash: %s\n", hash);
+		purple_prefs_set_string(PLUGIN_PREFS_PREFIX "/password", hash);
+		purple_prefs_trigger_callback(PLUGIN_PREFS_PREFIX "/password");
+		g_free(hash);
+	}
+
+	/* Encrypt all stored passwords */
+	for(l = purple_accounts_get_all(); l; l = l->next) {
+		account_encrypt((PurpleAccount *)l->data);
+	}
+}
+
 static void dialog_cancel_cb(
 	void *user_data, PurpleRequestFields *fields
 ) {
@@ -91,28 +109,25 @@ static void init_masterkey_cb(
 	void *user_data, PurpleRequestFields *fields
 ) {
 	const char *a, *b;
-	gchar *hash;
-	GList *l;
 
 	a = purple_request_fields_get_string(fields, "passwordA");
 	b = purple_request_fields_get_string(fields, "passwordB");
 
 	if(a && b && *a && purple_strequal(a, b)) {
 		key = masterkey_create(a);
-		hash = masterkey_get_hash(key);
-		debug("Master Key Hash: %s\n", hash);
-		purple_prefs_set_string(PLUGIN_PREFS_PREFIX "/password", hash);
-		g_free(hash);
+	} else {
+		warning("Master passwords do not match!\n");
+	}
 
-		/* Encrypt all stored passwords */
-		for(l = purple_accounts_get_all(); l; l = l->next) {
-			account_encrypt((PurpleAccount *)l->data);
+	/* Either start using the new key or spawn the dialog again. If we are
+	 * running at Pidgin's startup this will be handled in plugin_load().
+	 */
+	if(gtk_main_level() != 0) {
+		if(key) {
+			masterkey_loaded_cb(TRUE);
+		} else {
+			init_masterkey();
 		}
-	} else if(gtk_main_level() != 0) {
-		/* The passwords do not match. Issue the dialog again. If we are
-		 * running at Pidgin's startup this will be handled in plugin_load().
-		 */
-		init_masterkey();
 	}
 }
 static GtkDialog *init_masterkey(void) {
@@ -161,22 +176,18 @@ static GtkDialog *unlock_masterkey(void);
 static void unlock_masterkey_cb(
 	void *data, PurpleRequestFields *fields
 ) {
-	GList *l;
-
 	key = masterkey_from_hash(
 		purple_request_fields_get_string(fields, "masterpassword"),
 		purple_prefs_get_string(PLUGIN_PREFS_PREFIX "/password")
 	);
-	if(key) {
-		/* Encrypt all stored passwords */
-		for(l = purple_accounts_get_all(); l; l = l->next) {
-			account_encrypt((PurpleAccount *)l->data);
-		}
-	} else {
-		/* The password is not correct. Issue the dialog again. If we are
-		 * running at Pidgin's startup this will be handled in plugin_load().
-		 */
-		if(gtk_main_level() != 0) {
+
+	/* Either start using the key or spawn the dialog again. If we are running
+	 * at Pidgin's startup this will be handled in plugin_load().
+	 */
+	if(gtk_main_level() != 0) {
+		if(key) {
+			masterkey_loaded_cb(FALSE);
+		} else {
 			unlock_masterkey();
 		}
 	}
@@ -224,26 +235,35 @@ static void account_signed_on_cb(PurpleAccount *account, void *data) {
 }
 
 static gboolean plugin_load(PurplePlugin *p) {
-	GtkDialog *dialog;
-
 	plugin = p;
 
-	/* Issue either unlock or init dialog. If we are running at Pidgin's
-	 * startup we block here using gtk_dialog_run() to avoid protocols to
-	 * connect before we are fully initialized.
-	 */
-	cancelled = (gtk_main_level() != 0);
-	do {
+	/* Issue either unlock or init dialog to load/create a master key. */
+	if(gtk_main_level() > 0) {
 		if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
-			dialog = unlock_masterkey();
+			unlock_masterkey();
 		} else {
-			dialog = init_masterkey();
+			init_masterkey();
 		}
-
-		if(gtk_main_level() == 0) {
-			gtk_dialog_run(dialog);
-		}
-	} while(!key && !cancelled);
+	} else {
+		/* We are running at Pidgin's startup so we block here using
+		 * gtk_dialog_run() to avoid protocols to connect before we are fully
+		 * initialized.
+		 */
+		cancelled = FALSE;
+		do {
+			if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
+				gtk_dialog_run(unlock_masterkey());
+				if(key) {
+					masterkey_loaded_cb(FALSE);
+				}
+			} else {
+				gtk_dialog_run(init_masterkey());
+				if(key) {
+					masterkey_loaded_cb(TRUE);
+				}
+			}
+		} while(!key && !cancelled);
+	}
 
 	purple_signal_connect(purple_accounts_get_handle(),
 		"account-connecting", plugin,
