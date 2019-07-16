@@ -120,7 +120,7 @@ static void dialog_cancel_cb(
 	cancelled = TRUE;
 }
 
-static GtkDialog *dialog_init_masterkey(void);
+static GtkDialog *dialog_init_masterkey(gboolean change);
 static void init_masterkey_cb(
 	void *user_data, PurpleRequestFields *fields
 ) {
@@ -130,7 +130,6 @@ static void init_masterkey_cb(
 	a = purple_request_fields_get_string(fields, "passwordA");
 	b = purple_request_fields_get_string(fields, "passwordB");
 	security = purple_request_fields_get_choice(fields, "security");
-
 
 	if(a && b && *a && purple_strequal(a, b)) {
 		key = masterkey_create(a, security);
@@ -145,20 +144,94 @@ static void init_masterkey_cb(
 		if(key) {
 			masterkey_loaded_cb(TRUE);
 		} else {
-			dialog_init_masterkey();
+			dialog_init_masterkey(FALSE);
 		}
 	}
 }
-static GtkDialog *dialog_init_masterkey(void) {
+static void change_masterkey_cb(
+	void *user_data, PurpleRequestFields *fields
+) {
+	const char *a, *b;
+	enum MasterKeySecurity security;
+	struct MasterKey *oldKey = NULL, *newKey = NULL;
+	GList *l;
+
+	if(!key) {
+		error("Cannot change Master Password in locked state!\n");
+		return;
+	}
+
+	a = purple_request_fields_get_string(fields, "passwordA");
+	b = purple_request_fields_get_string(fields, "passwordB");
+	security = purple_request_fields_get_choice(fields, "security");
+
+	/* Check old password */
+	oldKey = masterkey_from_hash(
+		purple_request_fields_get_string(fields, "passwordOld"),
+		purple_prefs_get_string(PLUGIN_PREFS_PREFIX "/password")
+	);
+	if(!oldKey) {
+		warning("Wrong Master Password!\n");
+		dialog_init_masterkey(TRUE);
+		goto resubmission;
+	}
+
+	/* Check new passwords */
+	if(a && b && *a && purple_strequal(a, b)) {
+		newKey = masterkey_create(a, security);
+	} else {
+		warning("Master passwords do not match!\n");
+		goto resubmission;
+	}
+	if(!newKey) {
+		error("could not create new key!\n");
+		goto resubmission;
+	}
+
+	/* Replace the global key with our local old key. This should normally be
+	 * the same but an attacker might change the hash in the settings to pass
+	 * the test above.
+	 */
+	masterkey_free(key);
+	key = oldKey;
+
+	/* Decrypt all accounts with the old key. */
+	for(l = purple_accounts_get_all(); l; l = l->next) {
+		account_decrypt((PurpleAccount *)l->data);
+	}
+
+	/* Set new key globally and encrypt all accounts */
+	key = newKey;
+	masterkey_loaded_cb(TRUE);
+
+	masterkey_free(oldKey);
+	return;
+
+resubmission:
+	masterkey_free(oldKey);
+	masterkey_free(newKey);
+	dialog_init_masterkey(TRUE);
+}
+static GtkDialog *dialog_init_masterkey(gboolean change) {
 	PurpleRequestFields *fields;
 	PurpleRequestField *f;
 	PurpleRequestFieldGroup *group;
 	PidginRequestData *data;
+	GCallback ok_cb;
 
 	group = purple_request_field_group_new(NULL);
 
+	if(change) {
+		f = purple_request_field_string_new(
+			"passwordOld", _("Current Master Password"), NULL, FALSE
+		);
+		purple_request_field_string_set_masked(f, TRUE);
+		purple_request_field_set_required(f, TRUE);
+		purple_request_field_group_add_field(group, f);
+	}
+
 	f = purple_request_field_string_new(
-		"passwordA", _("Master Password"), NULL, FALSE
+		"passwordA", _("New Master Password"), NULL, FALSE
 	);
 	purple_request_field_string_set_masked(f, TRUE);
 	purple_request_field_set_required(f, TRUE);
@@ -183,9 +256,15 @@ static GtkDialog *dialog_init_masterkey(void) {
 	fields = purple_request_fields_new();
 	purple_request_fields_add_group(fields, group);
 
+	if(change) {
+		ok_cb = G_CALLBACK(change_masterkey_cb);
+	} else {
+		ok_cb = G_CALLBACK(init_masterkey_cb);
+	}
+
 	data = purple_request_fields(plugin,
 		_("Pidgin Master Password"), _("Enter new master password:"), NULL, fields,
-		_("OK"), G_CALLBACK(init_masterkey_cb),
+		_("OK"), ok_cb,
 		_("Cancel"), G_CALLBACK(dialog_cancel_cb),
 		NULL, NULL, NULL, NULL
 	);
@@ -262,11 +341,14 @@ static void action_lock_cb(PurplePluginAction *action) {
 		pidgin_blist_update_plugin_actions();
 	}
 }
+static void action_change_cb(PurplePluginAction *action) {
+	dialog_init_masterkey(TRUE);
+}
 static void action_unlock_cb(PurplePluginAction *action) {
 	dialog_unlock_masterkey();
 }
 static void action_init_cb(PurplePluginAction *action) {
-	dialog_init_masterkey();
+	dialog_init_masterkey(FALSE);
 }
 static GList *plugin_actions(PurplePlugin *plugin, gpointer context) {
 	GList *l = NULL;
@@ -274,6 +356,9 @@ static GList *plugin_actions(PurplePlugin *plugin, gpointer context) {
 	if(key) {
 		l = g_list_append(l, purple_plugin_action_new(
 			_("Lock"), action_lock_cb
+		));
+		l = g_list_append(l, purple_plugin_action_new(
+			_("Change"), action_change_cb
 		));
 	} else if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
 		l = g_list_append(l, purple_plugin_action_new(
@@ -309,7 +394,7 @@ static gboolean plugin_load(PurplePlugin *p) {
 		if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
 			dialog_unlock_masterkey();
 		} else {
-			dialog_init_masterkey();
+			dialog_init_masterkey(FALSE);
 		}
 	} else {
 		/* We are running at Pidgin's startup so we block here using
@@ -324,7 +409,7 @@ static gboolean plugin_load(PurplePlugin *p) {
 					masterkey_loaded_cb(FALSE);
 				}
 			} else {
-				gtk_dialog_run(dialog_init_masterkey());
+				gtk_dialog_run(dialog_init_masterkey(FALSE));
 				if(key) {
 					masterkey_loaded_cb(TRUE);
 				}
