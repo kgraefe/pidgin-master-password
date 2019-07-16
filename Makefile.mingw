@@ -83,6 +83,11 @@ endif
 update-po:
 	./scripts/po-update.sh
 
+dist: $(PLUGIN_WIN32_ZIP)
+
+$(PLUGIN_WIN32_ZIP): build
+	./scripts/gen-mingw-dist.sh $@ $(PLUGIN) $(PLUGIN).dll
+
 clean:
 	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
 	rm -f config.h .stamp-version*
