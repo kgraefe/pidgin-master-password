@@ -53,7 +53,7 @@ static void account_decrypt(PurpleAccount *account) {
 			purple_account_get_username(account),
 			purple_account_get_protocol_name(account)
 		);
-		purple_account_set_string(account, "password-encrypted", NULL);
+		purple_account_remove_setting(account, "password-encrypted");
 		return;
 	}
 
@@ -69,7 +69,7 @@ static void account_encrypt(PurpleAccount *account, gboolean new) {
 	}
 
 	if(new) {
-		purple_account_set_string(account, "password-encrypted", NULL);
+		purple_account_remove_setting(account, "password-encrypted");
 	}
 
 	password = purple_account_get_password(account);
