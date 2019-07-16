@@ -376,7 +376,16 @@ static void account_connecting_cb(PurpleAccount *account, void *data) {
 	account_decrypt(account);
 }
 static void account_signed_on_cb(PurpleAccount *account, void *data) {
+	const char *pw;
+
 	account_encrypt(account, FALSE);
+
+	/* Clear account password */
+	pw = purple_account_get_password(account);
+	if(pw) {
+		sodium_memzero((char *)pw, strlen(pw));
+	}
+	purple_account_set_password(account, NULL);
 }
 
 static gboolean plugin_load(PurplePlugin *p) {
