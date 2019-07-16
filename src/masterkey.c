@@ -71,9 +71,15 @@ gchar *masterkey_get_hash(struct MasterKey *key) {
 	/* Start with algorithm index (currently we support only one) */
 	g_string_append_printf(str, "$%d", key->alg);
 
+#if defined(_WIN32)
+#define FORMAT_LLU "%I64u"
+#else
+#define FORMAT_LLU "%llu"
+#endif
+
 	/* Append options */
 	g_string_append_printf(str,
-		"$opslimit=%I64u,memlimit=%d",
+		"$opslimit=" FORMAT_LLU ",memlimit=%d",
 		key->opslimit, key->memlimit
 	);
 
