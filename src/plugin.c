@@ -371,7 +371,7 @@ static void delete_masterkey_cb(void *data, int delete) {
 static void dialog_delete_masterkey(void) {
 	if(key) {
 		purple_request_choice(plugin,
-			_("Pidgin Master Password"), _("Delete Master Key?"),
+			_("Pidgin Master Password"), _("Delete Master Password?"),
 			NULL,
 			TRUE, /* Default to "Delete" */
 			_("_Yes"),  G_CALLBACK(delete_masterkey_cb),
@@ -383,7 +383,7 @@ static void dialog_delete_masterkey(void) {
 		);
 	} else {
 		purple_request_yes_no(plugin,
-			_("Pidgin Master Password"), _("Delete Master Key?"),
+			_("Pidgin Master Password"), _("Delete Master Password?"),
 			_("This will delete all encrypted account passwords."),
 			1, /* Default to "No" */
 			NULL, NULL, NULL, NULL,
