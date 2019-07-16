@@ -80,6 +80,9 @@ endif
 	rm -f $@
 	$(GMSGFMT) --statistics -o $@ $<
 
+update-po:
+	./scripts/po-update.sh
+
 clean:
 	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
 	rm -f config.h .stamp-version*

@@ -11,3 +11,6 @@ EXTRA_DIST = \
 SUBDIRS = src po
 
 ACLOCAL_AMFLAGS=-I m4
+
+update-po:
+	$(MAKE) -C po $@
