@@ -8,6 +8,10 @@
 
 #include <sodium.h>
 
+#if defined(_WIN32)
+#	include <win32dep.h>
+#endif
+
 #include "masterkey.h"
 
 typedef struct
@@ -333,6 +337,21 @@ static PurplePluginInfo info = {
 };
 
 static void init_plugin(PurplePlugin *plugin) {
+#if defined(ENABLE_NLS)
+	const char *str = "Master Password";
+	gchar *plugins_locale_dir;
+
+	plugins_locale_dir = g_build_filename(purple_user_dir(), "locale", NULL);
+
+	bindtextdomain(GETTEXT_PACKAGE, plugins_locale_dir);
+	if(str == _(str)) {
+		bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	}
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+
+	g_free(plugins_locale_dir);
+#endif
+
 	info.name        = _("Master Password");
 	info.summary     = _("Protect account passwords by a master password.");
 	info.description = _("Protect account passwords by a master password.");
