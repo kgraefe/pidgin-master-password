@@ -45,6 +45,9 @@ static void hash_options_from_string(struct MasterKey *key, const char *str) {
 			continue;
 		}
 
+		if(purple_utf8_strcasecmp(opt, "alg") == 0) {
+			key->alg = ival;
+		}
 		if(purple_utf8_strcasecmp(opt, "opslimit") == 0) {
 			key->opslimit = ival;
 		}
@@ -69,7 +72,7 @@ gchar *masterkey_get_hash(struct MasterKey *key) {
 	}
 
 	/* Start with algorithm index (currently we support only one) */
-	g_string_append_printf(str, "$%d", key->alg);
+	g_string_append(str, "$1");
 
 #if defined(_WIN32)
 #define FORMAT_LLU "%I64u"
@@ -79,8 +82,8 @@ gchar *masterkey_get_hash(struct MasterKey *key) {
 
 	/* Append options */
 	g_string_append_printf(str,
-		"$opslimit=" FORMAT_LLU ",memlimit=%d",
-		key->opslimit, key->memlimit
+		"$alg=%d,opslimit=" FORMAT_LLU ",memlimit=%d",
+		key->alg, key->opslimit, key->memlimit
 	);
 
 	/* Append salt */
@@ -319,7 +322,7 @@ struct MasterKey *masterkey_from_hash(
 	 * only one.
 	 */
 	field = fields[idx++];
-	if(!field || !purple_strequal(field, "2")) {
+	if(!field || !purple_strequal(field, "1")) {
 		goto error;
 	}
 	field++;
