@@ -60,7 +60,8 @@ practices are in place and will be updated with the library.
 In order to build the plugin for Windows an already-compiled source tree of
 Pidgin is required. Please see the [Pidgin for Windows Build Instructions][8]
 for details. Note that you *must* install `Strawberry Perl` as it is optional
-for Pidgin but not for this plugin. The [pidgin-windev][9] does all that.
+for Pidgin but not for this plugin. The [pidgin-windev][9] script does all
+that.
 
 Additionally you need to download [libsodium-1.0.18-mingw.tar.gz][10] and
 extract it into `win32-dev/libsodium-1.0.18-mingw` (the subdirectory must be
