@@ -3,6 +3,9 @@
 This is a Pidgin plugin that stores account passwords encrypted by a master
 password.
 
+If you find security relates issues please send a private (possibly [PGP
+encrypted][3]) e-mail to <konradgraefe@aol.com>.
+
 ## Security Considerations
 During login the account passwords must be sent to Pidgin/libpuple unencrypted.
 From there a malicious third-party plugin can collect them **quite easily**.
@@ -27,3 +30,4 @@ practices are in place and will be updated with the library.
 
 [1]: https://libsodium.gitbook.io/doc/secret-key_cryptography/aead/aes-256-gcm
 [2]: https://libsodium.gitbook.io/doc/
+[3]: https://keybase.io/konradgraefe
