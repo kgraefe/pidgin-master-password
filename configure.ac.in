@@ -28,10 +28,31 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], [Gettext package])
 ALL_LINGUAS="@@LANGUAGES@@"
 AM_GLIB_GNU_GETTEXT
 
+# Compiler flags
+CFLAGS="$CFLAGS -Wall -Werror-implicit-function-declaration"
+
 # Checks for libraries.
-PKG_CHECK_MODULES(pidgin, [pidgin >= 2.10.0], , [AC_MSG_ERROR(pidgin >= 2.10.0 required! Please make sure that pidgin development files are installed.)])
+PKG_CHECK_MODULES(pidgin, [pidgin >= 2.10.0], , [AC_MSG_ERROR([
+
+You must have the development headers of pidgin 2.10.0 or newer installed to
+build.
+
+If you have these installed already you may need to install pkg-config or set
+the environment variables pidgin_LIBS and pidgin_CFLAGS so I can find them.
+])])
 LIBS="$LIBS $pidgin_LIBS"
-CFLAGS="$CFLAGS $pidgin_CFLAGS -Wall -Werror-implicit-function-declaration"
+CFLAGS="$CFLAGS $pidgin_CFLAGS"
+
+PKG_CHECK_MODULES(libsodium, [libsodium >= 1.0.0], , [AC_MSG_ERROR([
+
+You must have the development headers of libsodium installed to build.
+
+If you have these installed already you may need to install pkg-config or set
+the environment variables libsodium_LIBS and libsodium_CFLAGS so I can find
+them.
+])])
+LIBS="$LIBS $libsodium_LIBS"
+CFLAGS="$CFLAGS $libsodium_CFLAGS"
 
 # Checks for header files.
 
@@ -42,6 +63,7 @@ CFLAGS="$CFLAGS $pidgin_CFLAGS -Wall -Werror-implicit-function-declaration"
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	po/Makefile.in
 ])
 AC_OUTPUT
 
