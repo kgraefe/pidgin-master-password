@@ -1,0 +1,1 @@
+# Pidgin Master Password
