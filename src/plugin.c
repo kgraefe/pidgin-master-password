@@ -334,6 +334,64 @@ static GtkDialog *dialog_unlock_masterkey(void) {
 	return GTK_DIALOG(data->dialog);
 }
 
+static void delete_masterkey_cb(void *data, int delete) {
+	PurpleAccount *account;
+	GList *l;
+
+	/* The parameter "delete" is set by purple_request_choice() to the integer
+	 * corresponding to the selected choice which is "1" for "Delete".
+	 * When used with purple_request_yes_no() this parameter is set to the
+	 * index of the button which is 1 for "Yes".
+	 */
+
+	/* Delete or decrypt all account passwords */
+	for(l = purple_accounts_get_all(); l; l = l->next) {
+		account = (PurpleAccount *)l->data;
+
+		if(key && !delete) {
+			account_decrypt(account);
+			if(purple_account_get_password(account)) {
+				purple_account_set_remember_password(account, TRUE);
+			}
+		}
+		purple_account_remove_setting(account, "password-encrypted");
+	}
+
+	/* Delete master key hash */
+	purple_prefs_remove(PLUGIN_PREFS_PREFIX "/password");
+
+	/* Delete master key */
+	if(key) {
+		masterkey_free(key);
+		key = NULL;
+	}
+
+	pidgin_blist_update_plugin_actions();
+}
+static void dialog_delete_masterkey(void) {
+	if(key) {
+		purple_request_choice(plugin,
+			_("Pidgin Master Password"), _("Delete Master Key?"),
+			NULL,
+			TRUE, /* Default to "Delete" */
+			_("_Yes"),  G_CALLBACK(delete_masterkey_cb),
+			_("_No"), G_CALLBACK(dialog_cancel_cb),
+			NULL, NULL, NULL, NULL,
+			_("Delete account passwords"), TRUE,
+			_("Store account passwords in plaintext"), FALSE,
+			NULL
+		);
+	} else {
+		purple_request_yes_no(plugin,
+			_("Pidgin Master Password"), _("Delete Master Key?"),
+			_("This will delete all encrypted account passwords."),
+			1, /* Default to "No" */
+			NULL, NULL, NULL, NULL,
+			G_CALLBACK(delete_masterkey_cb), G_CALLBACK(dialog_cancel_cb)
+		);
+	}
+}
+
 static void action_lock_cb(PurplePluginAction *action) {
 	if(key) {
 		masterkey_free(key);
@@ -346,6 +404,9 @@ static void action_change_cb(PurplePluginAction *action) {
 }
 static void action_unlock_cb(PurplePluginAction *action) {
 	dialog_unlock_masterkey();
+}
+static void action_delete_cb(PurplePluginAction *action) {
+	dialog_delete_masterkey();
 }
 static void action_init_cb(PurplePluginAction *action) {
 	dialog_init_masterkey(FALSE);
@@ -360,9 +421,15 @@ static GList *plugin_actions(PurplePlugin *plugin, gpointer context) {
 		l = g_list_append(l, purple_plugin_action_new(
 			_("Change"), action_change_cb
 		));
+		l = g_list_append(l, purple_plugin_action_new(
+			_("Delete"), action_delete_cb
+		));
 	} else if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
 		l = g_list_append(l, purple_plugin_action_new(
 			_("Unlock"), action_unlock_cb
+		));
+		l = g_list_append(l, purple_plugin_action_new(
+			_("Delete"), action_delete_cb
 		));
 	} else {
 		l = g_list_append(l, purple_plugin_action_new(
