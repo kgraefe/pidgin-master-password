@@ -276,7 +276,7 @@ struct MasterKey *masterkey_create(
 
 	/* Retrieve master key from password */
 	if(crypto_pwhash(
-		key->key, MASTER_KEY_LEN, 
+		key->key, MASTER_KEY_LEN,
 		password, strlen(password),
 		key->salt, key->opslimit, key->memlimit, key->alg
 	) != 0) {
