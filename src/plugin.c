@@ -272,7 +272,7 @@ static GtkDialog *dialog_init_masterkey(gboolean change) {
 		return NULL;
 	}
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	gtk_window_set_title(GTK_WINDOW(data->dialog), _("Pidgin Master Password"));
 #endif
 
@@ -327,7 +327,7 @@ static GtkDialog *dialog_unlock_masterkey(void) {
 		return NULL;
 	}
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	gtk_window_set_title(GTK_WINDOW(data->dialog), _("Pidgin Master Password"));
 #endif
 
