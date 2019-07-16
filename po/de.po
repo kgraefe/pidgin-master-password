@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-30 20:41+0200\n"
+"POT-Creation-Date: 2019-07-17 00:10+0200\n"
 "PO-Revision-Date: 2019-06-30 19:04+0000\n"
 "Last-Translator: Konrad Gräfe <konradgraefe@aol.com>, 2019\n"
 "Language-Team: German (https://www.transifex.com/kgraefe/teams/100738/de/)\n"
@@ -21,35 +21,105 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/plugin.c:127 ../src/plugin.c:193 ../src/plugin.c:308
-msgid "Master Password"
-msgstr "Master-Passwort"
+#: ../src/plugin.c:226
+msgid "Current Master Password"
+msgstr "Aktuelles Master-Passwort"
 
-#: ../src/plugin.c:134
+#: ../src/plugin.c:234
+msgid "New Master Password"
+msgstr "Neues Master-Passwort"
+
+#: ../src/plugin.c:241
 msgid "Confirmation"
 msgstr "Bestätigung"
 
-#: ../src/plugin.c:144 ../src/plugin.c:154 ../src/plugin.c:203
-#: ../src/plugin.c:213
+#: ../src/plugin.c:248
+msgid "Security Level"
+msgstr "Sicherheitsstufe"
+
+#. The indices MUST correspond to enum MasterKeySecurity!
+#: ../src/plugin.c:251
+msgid "Interactive (fastest)"
+msgstr "Interaktiv (schnellste)"
+
+#: ../src/plugin.c:252
+msgid "Moderate"
+msgstr "Moderat"
+
+#: ../src/plugin.c:253
+msgid "Sensitive (slowest)"
+msgstr "Sensibel (langsamste)"
+
+#: ../src/plugin.c:266 ../src/plugin.c:276 ../src/plugin.c:321
+#: ../src/plugin.c:331 ../src/plugin.c:374 ../src/plugin.c:386
 msgid "Pidgin Master Password"
 msgstr "Pidgin Master-Passwort"
 
-#: ../src/plugin.c:144
+#: ../src/plugin.c:266
 msgid "Enter new master password:"
 msgstr "Neues Master-Passwort eingeben:"
 
-#: ../src/plugin.c:145 ../src/plugin.c:204
+#: ../src/plugin.c:267 ../src/plugin.c:322
 msgid "OK"
 msgstr "OK"
 
-#: ../src/plugin.c:146 ../src/plugin.c:205
+#: ../src/plugin.c:268 ../src/plugin.c:323
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: ../src/plugin.c:203
+#: ../src/plugin.c:311 ../src/plugin.c:568
+msgid "Master Password"
+msgstr "Master-Passwort"
+
+#: ../src/plugin.c:321
 msgid "Enter master password:"
 msgstr "Master-Passwort eingeben:"
 
-#: ../src/plugin.c:309 ../src/plugin.c:310
+#: ../src/plugin.c:374 ../src/plugin.c:386
+msgid "Delete Master Password?"
+msgstr "Master-Passwort löschen?"
+
+#. Default to "Delete"
+#: ../src/plugin.c:377
+msgid "_Yes"
+msgstr "_Ja"
+
+#: ../src/plugin.c:378
+msgid "_No"
+msgstr "_Nein"
+
+#: ../src/plugin.c:380
+msgid "Delete account passwords"
+msgstr "Konto-Passwörter löschen"
+
+#: ../src/plugin.c:381
+msgid "Store account passwords in plaintext"
+msgstr "Konto-Passwörter unverschlüsselt speichern"
+
+#: ../src/plugin.c:387
+msgid "This will delete all encrypted account passwords."
+msgstr "Alle Konto-Passwörter werden gelöscht."
+
+#: ../src/plugin.c:419
+msgid "Lock"
+msgstr "Sperren"
+
+#: ../src/plugin.c:422
+msgid "Change"
+msgstr "Ändern"
+
+#: ../src/plugin.c:425 ../src/plugin.c:432
+msgid "Delete"
+msgstr "Löschen"
+
+#: ../src/plugin.c:429
+msgid "Unlock"
+msgstr "Entsperren"
+
+#: ../src/plugin.c:436
+msgid "Initialize"
+msgstr "Initialisieren"
+
+#: ../src/plugin.c:569 ../src/plugin.c:570
 msgid "Protect account passwords by a master password."
 msgstr "Konto-Passwörter mit einem Master-Passwort schützen."
