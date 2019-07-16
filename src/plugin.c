@@ -8,6 +8,8 @@
 
 #include <sodium.h>
 
+#include <gtkblist.h>
+
 #if defined(_WIN32)
 #	include <win32dep.h>
 #endif
@@ -108,6 +110,8 @@ static void masterkey_loaded_cb(gboolean new) {
 	for(l = purple_accounts_get_all(); l; l = l->next) {
 		account_encrypt((PurpleAccount *)l->data, new);
 	}
+
+	pidgin_blist_update_plugin_actions();
 }
 
 static void dialog_cancel_cb(
@@ -251,6 +255,38 @@ static GtkDialog *dialog_unlock_masterkey(void) {
 	return GTK_DIALOG(data->dialog);
 }
 
+static void action_lock_cb(PurplePluginAction *action) {
+	if(key) {
+		masterkey_free(key);
+		key = NULL;
+		pidgin_blist_update_plugin_actions();
+	}
+}
+static void action_unlock_cb(PurplePluginAction *action) {
+	dialog_unlock_masterkey();
+}
+static void action_init_cb(PurplePluginAction *action) {
+	dialog_init_masterkey();
+}
+static GList *plugin_actions(PurplePlugin *plugin, gpointer context) {
+	GList *l = NULL;
+
+	if(key) {
+		l = g_list_append(l, purple_plugin_action_new(
+			_("Lock"), action_lock_cb
+		));
+	} else if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
+		l = g_list_append(l, purple_plugin_action_new(
+			_("Unlock"), action_unlock_cb
+		));
+	} else {
+		l = g_list_append(l, purple_plugin_action_new(
+			_("Initialize"), action_init_cb
+		));
+	}
+	return l;
+}
+
 static void account_connecting_cb(PurpleAccount *account, void *data) {
 	account_decrypt(account);
 }
@@ -308,7 +344,6 @@ static gboolean plugin_load(PurplePlugin *p) {
 	debug("Master password plugin loaded.\n");
 	return TRUE;
 }
-
 static gboolean plugin_unload(PurplePlugin *p) {
 	if(key) {
 		masterkey_free(key);
@@ -345,7 +380,7 @@ static PurplePluginInfo info = {
 	NULL,                       /* ui_info        */
 	NULL,                       /* extra_info     */
 	NULL,                       /* prefs_info     */
-	NULL,                       /* actions        */
+	plugin_actions,             /* actions        */
 	/* padding */
 	NULL,
 	NULL,
