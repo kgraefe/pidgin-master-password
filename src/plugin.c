@@ -51,18 +51,23 @@ static void account_decrypt(PurpleAccount *account) {
 			purple_account_get_username(account),
 			purple_account_get_protocol_name(account)
 		);
+		purple_account_set_string(account, "password-encrypted", NULL);
 		return;
 	}
 
 	purple_account_set_password(account, password);
 	purple_account_set_remember_password(account, FALSE);
 }
-static void account_encrypt(PurpleAccount *account) {
+static void account_encrypt(PurpleAccount *account, gboolean new) {
 	const char *password;
 	gchar *encrypted;
 
 	if(!key) {
 		return;
+	}
+
+	if(new) {
+		purple_account_set_string(account, "password-encrypted", NULL);
 	}
 
 	password = purple_account_get_password(account);
@@ -101,7 +106,7 @@ static void masterkey_loaded_cb(gboolean new) {
 
 	/* Encrypt all stored passwords */
 	for(l = purple_accounts_get_all(); l; l = l->next) {
-		account_encrypt((PurpleAccount *)l->data);
+		account_encrypt((PurpleAccount *)l->data, new);
 	}
 }
 
@@ -250,7 +255,7 @@ static void account_connecting_cb(PurpleAccount *account, void *data) {
 	account_decrypt(account);
 }
 static void account_signed_on_cb(PurpleAccount *account, void *data) {
-	account_encrypt(account);
+	account_encrypt(account, FALSE);
 }
 
 static gboolean plugin_load(PurplePlugin *p) {
