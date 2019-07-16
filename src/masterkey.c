@@ -13,6 +13,9 @@
 #define MASTER_KEY_LEN crypto_secretbox_KEYBYTES
 #define MASTER_KEY_HASH_LEN crypto_generichash_blake2b_BYTES_MAX
 #define MASTER_KEY_SALT_LEN crypto_pwhash_SALTBYTES
+#define MASTER_KEY_DEFAULT_ALGORITHM crypto_pwhash_ALG_DEFAULT
+#define MASTER_KEY_DEFAULT_OPSLIMIT crypto_pwhash_OPSLIMIT_MODERATE
+#define MASTER_KEY_DEFAULT_MEMLIMIT crypto_pwhash_MEMLIMIT_MODERATE
 #define PASSWORD_NONCE_LEN crypto_secretbox_NONCEBYTES
 #define PASSWORD_TAG_LEN crypto_secretbox_MACBYTES
 
@@ -246,9 +249,9 @@ struct MasterKey *masterkey_create(const gchar *password) {
 	}
 
 	/* Set default parameters */
-	key->opslimit = crypto_pwhash_OPSLIMIT_INTERACTIVE;
-	key->memlimit = crypto_pwhash_MEMLIMIT_INTERACTIVE;
-	key->alg = crypto_pwhash_ALG_DEFAULT;
+	key->alg = MASTER_KEY_DEFAULT_ALGORITHM;
+	key->opslimit = MASTER_KEY_DEFAULT_OPSLIMIT;
+	key->memlimit = MASTER_KEY_DEFAULT_MEMLIMIT;
 
 	/* Get random salt */
 	randombytes_buf(key->salt, crypto_pwhash_SALTBYTES);
@@ -302,9 +305,9 @@ struct MasterKey *masterkey_from_hash(
 	}
 
 	/* Set default parameters */
-	key->opslimit = crypto_pwhash_OPSLIMIT_INTERACTIVE;
-	key->memlimit = crypto_pwhash_MEMLIMIT_INTERACTIVE;
-	key->alg = crypto_pwhash_ALG_DEFAULT;
+	key->alg = MASTER_KEY_DEFAULT_ALGORITHM;
+	key->opslimit = MASTER_KEY_DEFAULT_OPSLIMIT;
+	key->memlimit = MASTER_KEY_DEFAULT_MEMLIMIT;
 
 	/* Split fields */
 	fields = g_strsplit(string, "$", -1);
