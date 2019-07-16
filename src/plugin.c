@@ -111,17 +111,20 @@ static void dialog_cancel_cb(
 	cancelled = TRUE;
 }
 
-static GtkDialog *init_masterkey(void);
+static GtkDialog *dialog_init_masterkey(void);
 static void init_masterkey_cb(
 	void *user_data, PurpleRequestFields *fields
 ) {
 	const char *a, *b;
+	enum MasterKeySecurity security;
 
 	a = purple_request_fields_get_string(fields, "passwordA");
 	b = purple_request_fields_get_string(fields, "passwordB");
+	security = purple_request_fields_get_choice(fields, "security");
+
 
 	if(a && b && *a && purple_strequal(a, b)) {
-		key = masterkey_create(a);
+		key = masterkey_create(a, security);
 	} else {
 		warning("Master passwords do not match!\n");
 	}
@@ -133,11 +136,11 @@ static void init_masterkey_cb(
 		if(key) {
 			masterkey_loaded_cb(TRUE);
 		} else {
-			init_masterkey();
+			dialog_init_masterkey();
 		}
 	}
 }
-static GtkDialog *init_masterkey(void) {
+static GtkDialog *dialog_init_masterkey(void) {
 	PurpleRequestFields *fields;
 	PurpleRequestField *f;
 	PurpleRequestFieldGroup *group;
@@ -157,6 +160,15 @@ static GtkDialog *init_masterkey(void) {
 	);
 	purple_request_field_string_set_masked(f, TRUE);
 	purple_request_field_set_required(f, TRUE);
+	purple_request_field_group_add_field(group, f);
+
+	f = purple_request_field_choice_new(
+		"security", _("Security Level"), MASTER_KEY_SECURITY_MODERATE
+	);
+	/* The indices MUST correspond to enum MasterKeySecurity! */
+	purple_request_field_choice_add(f, _("Interactive (fastest)"));
+	purple_request_field_choice_add(f, _("Moderate"));
+	purple_request_field_choice_add(f, _("Sensitive (slowest)"));
 	purple_request_field_group_add_field(group, f);
 
 	fields = purple_request_fields_new();
@@ -179,7 +191,7 @@ static GtkDialog *init_masterkey(void) {
 	return GTK_DIALOG(data->dialog);
 }
 
-static GtkDialog *unlock_masterkey(void);
+static GtkDialog *dialog_unlock_masterkey(void);
 static void unlock_masterkey_cb(
 	void *data, PurpleRequestFields *fields
 ) {
@@ -195,11 +207,11 @@ static void unlock_masterkey_cb(
 		if(key) {
 			masterkey_loaded_cb(FALSE);
 		} else {
-			unlock_masterkey();
+			dialog_unlock_masterkey();
 		}
 	}
 }
-static GtkDialog *unlock_masterkey(void) {
+static GtkDialog *dialog_unlock_masterkey(void) {
 	PurpleRequestFields *fields;
 	PurpleRequestField *f;
 	PurpleRequestFieldGroup *group;
@@ -254,9 +266,9 @@ static gboolean plugin_load(PurplePlugin *p) {
 	/* Issue either unlock or init dialog to load/create a master key. */
 	if(gtk_main_level() > 0) {
 		if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
-			unlock_masterkey();
+			dialog_unlock_masterkey();
 		} else {
-			init_masterkey();
+			dialog_init_masterkey();
 		}
 	} else {
 		/* We are running at Pidgin's startup so we block here using
@@ -266,12 +278,12 @@ static gboolean plugin_load(PurplePlugin *p) {
 		cancelled = FALSE;
 		do {
 			if(purple_prefs_exists(PLUGIN_PREFS_PREFIX "/password")) {
-				gtk_dialog_run(unlock_masterkey());
+				gtk_dialog_run(dialog_unlock_masterkey());
 				if(key) {
 					masterkey_loaded_cb(FALSE);
 				}
 			} else {
-				gtk_dialog_run(init_masterkey());
+				gtk_dialog_run(dialog_init_masterkey());
 				if(key) {
 					masterkey_loaded_cb(TRUE);
 				}
