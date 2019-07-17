@@ -14,10 +14,12 @@ encrypted][3]) e-mail to <konradgraefe@aol.com>.
 - [Installation](#installation)
     - [Installation on Windows](#installation-on-windows)
     - [Installation on Linux](#installation-on-linux)
+    - [Installation on MacOS](#installation-on-macos)
 - [Encryption details](#encryption-details)
 - [Building from source](#building-from-source)
     - [Building on Windows](#building-on-windows)
     - [Building on Linux](#building-on-linux)
+    - [Building on MacOS](#building-on-macos)
 - [Contribution](#contribution)
 
 ## Security Considerations
@@ -36,6 +38,10 @@ Download the ZIP file from the [latest release][6] and extract the contents of
 ### Installation on Linux
 If your distribution has the plugin in its repository you can use that.
 Otherwise you must build the plugin [from source](#building-on-linux).
+
+### Installation on MacOS
+On MacOS this plugin is tested on Pidgin installed through [Homebrew][11] only.
+For now the plugin must be installed [from source](#building-on-macos).
 
 ## Encryption details
 All operations are done with high-level [libsodium][2] functions so that best
@@ -94,6 +100,39 @@ installed Pidgin through your package manager, it is most likely installed into
 "Source code" archives, you need to run `./autogen.sh` before running
 `./configure`.
 
+### Building on MacOS
+For building on MacOS [Homebrew][11] must be installed on the system. To build
+the plugin you need to extract a relase tarball and compile it from source:
+
+1. Install runtime and build dependencies:
+
+    ```
+    brew install pidgin libsodium
+    brew install intltool automake libtool pkg-config
+    ```
+
+2. In Homebrew `gettext` and `libffi` are not installed system-wide so we must
+   point the build system to the correct paths:
+
+    ```
+    export PATH="/usr/local/opt/gettext/bin:$PATH"
+    export LDFLAGS="-L/usr/local/opt/gettext/lib"
+    export CPPFLAGS="-I/usr/local/opt/gettext/include"
+    export ACLOCAL_PATH="/usr/local/opt/gettext/share/aclocal"
+    export PKG_CONFIG_PATH="/usr/local/opt/libffi/lib/pkgconfig"
+    ```
+
+   This must be done in every new shell session. Therefore I normally put those
+   in an `environment` file which I then load with `source environment`.
+
+3. Configure, compile and install:
+
+    ```
+    ./configure
+    make
+    make install
+    ```
+
 ## Contribution
 We love patches. :heart: Please fork the project, do your changes and make a
 pull request.
@@ -111,3 +150,4 @@ You could also help translating this project on [Transifex][7].
 [8]: https://developer.pidgin.im/wiki/BuildingWinPidgin
 [9]: https://github.com/kgraefe/pidgin-windev
 [10]: https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-mingw.tar.gz
+[11]: https://brew.sh
