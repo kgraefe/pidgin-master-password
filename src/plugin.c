@@ -440,10 +440,19 @@ static GList *plugin_actions(PurplePlugin *plugin, gpointer context) {
 }
 
 static void account_connecting_cb(PurpleAccount *account, void *data) {
+	debug("account-connecting: %s (%s)\n",
+		purple_account_get_username(account),
+		purple_account_get_protocol_name(account)
+	);
 	account_decrypt(account);
 }
 static void account_signed_on_cb(PurpleAccount *account, void *data) {
 	const char *pw;
+
+	debug("account-signed-on: %s (%s)\n",
+		purple_account_get_username(account),
+		purple_account_get_protocol_name(account)
+	);
 
 	account_encrypt(account, FALSE);
 
