@@ -85,9 +85,9 @@ static void *request_fields(
 	 * request as soon as Glib hits the idle loop again.
 	 *
 	 * That also means that we must hook into the close_request() function to
-	 * free our own stuff and make that those pointer are not leaked into the
-	 * UI. Otherwise the UI will dereference our pointer as different
-	 * structures and bad things will happen.
+	 * free our own stuff and make sure those pointers are not leaked into the
+	 * UI. Otherwise it will dereference our pointer as different structures
+	 * and bad things will happen.
 	 */
 	data = g_new0(RequestHookData, 1);
 	data->account = account;
@@ -122,7 +122,7 @@ static void close_request(PurpleRequestType type, void *ui_handle) {
 		}
 	}
 
-	/* Handle not found, so it must be a real UI handle */
+	/* Handle not found, so it must be a real UI handle. */
 	ui_close_request(type, ui_handle);
 }
 
@@ -148,7 +148,7 @@ void request_hook_uninstall(void) {
 	RequestHookData *data;
 	GList *l;
 
-	/* If we have any open requests, cancel them */
+	/* If we have any open requests, cancel them now. */
 	for(l = handles; l != NULL; l = l->next) {
 		data = l->data;
 		if(data->cancel_cb) {
