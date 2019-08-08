@@ -15,6 +15,7 @@
 #endif
 
 #include "masterkey.h"
+#include "requesthook.h"
 
 typedef struct
 {
@@ -30,20 +31,20 @@ static PurplePlugin *plugin = NULL;
 static struct MasterKey *key = NULL;
 static gboolean cancelled;
 
-static void account_decrypt(PurpleAccount *account) {
+static gboolean account_decrypt(PurpleAccount *account) {
 	const char *encrypted;
 	gchar *password;
 
 	if(!key) {
-		return;
+		return FALSE;
 	}
 	if(purple_account_get_password(account)) {
-		return;
+		return FALSE;
 	}
 
 	encrypted = purple_account_get_string(account, "password-encrypted", NULL);
 	if(!encrypted) {
-		return;
+		return FALSE;
 	}
 
 	password = masterkey_decrypt_password(key, encrypted);
@@ -54,11 +55,13 @@ static void account_decrypt(PurpleAccount *account) {
 			purple_account_get_protocol_name(account)
 		);
 		purple_account_remove_setting(account, "password-encrypted");
-		return;
+		return FALSE;
 	}
 
 	purple_account_set_password(account, password);
 	purple_account_set_remember_password(account, FALSE);
+
+	return TRUE;
 }
 static void account_encrypt(PurpleAccount *account, gboolean new) {
 	const char *password;
@@ -511,6 +514,12 @@ static gboolean plugin_load(PurplePlugin *p) {
 		PURPLE_CALLBACK(account_signed_on_cb), NULL
 	);
 
+	/* For protocols that always require a password, Pidgin ask for the
+	 * password *before* sending the "account-connecting" signal. Therefore we
+	 * need to hook into the request API to catch the password request dialogs.
+	 */
+	request_hook_install(account_decrypt);
+
 	debug("Master password plugin loaded.\n");
 	return TRUE;
 }
@@ -521,6 +530,8 @@ static gboolean plugin_unload(PurplePlugin *p) {
 	}
 	purple_request_close_with_handle(plugin);
 	purple_signals_disconnect_by_handle(plugin);
+	request_hook_uninstall();
+
 	debug("Master password plugin unloaded.\n");
 	return TRUE;
 }
