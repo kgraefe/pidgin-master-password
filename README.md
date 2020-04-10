@@ -7,7 +7,7 @@ This is a Pidgin plugin that stores account passwords encrypted by a master
 password.
 
 If you find security relates issues please send a private (possibly [PGP
-encrypted][3]) e-mail to <konradgraefe@aol.com>.
+encrypted][3]) e-mail to <kgraefe@paktolos.net>.
 
 ## Table of contents
 - [Security Considerations](#security-considerations)
@@ -149,7 +149,7 @@ You could also help translating this project on [Transifex][7].
 
 [1]: https://libsodium.gitbook.io/doc/secret-key_cryptography/aead/aes-256-gcm
 [2]: https://libsodium.gitbook.io/doc/
-[3]: https://keybase.io/konradgraefe
+[3]: https://kgraefe.paktolos.net/pgp/
 [4]: https://libsodium.gitbook.io/doc/password_hashing/the_argon2i_function#key-derivation
 [5]: https://libsodium.gitbook.io/doc/memory_management#guarded-heap-allocations
 [6]: https://github.com/kgraefe/pidgin-master-password/releases/latest
