@@ -6,6 +6,8 @@
 
 #include "requesthook.h"
 
+#include "plugin.h"
+
 typedef struct {
 	PurpleAccount *account;
 	PurpleRequestFields *fields;
