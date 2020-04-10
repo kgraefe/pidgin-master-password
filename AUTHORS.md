@@ -4,4 +4,5 @@
 - Konrad Gräfe <kgraefe@paktolos.net>
 
 ## Translators
-See translation files in the po directory for details.
+### German (de)
+- Konrad Gräfe <kgraefe@paktolos.net>, 2020
