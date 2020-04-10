@@ -6,6 +6,7 @@ EXTRA_DIST = \
 	Makefile.mingw \
 	AUTHORS.md \
 	CHANGES.md \
+	doc/encryption.png\
 	README.md \
 	VERSION
 
