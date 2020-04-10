@@ -14,7 +14,6 @@
 /po/Makefile.in.in
 /po/POTFILES
 /po/stamp-it
-/po/*.pot
 /src/.deps
 /src/.libs
 /m4/
