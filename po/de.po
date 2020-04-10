@@ -4,16 +4,16 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# Konrad Gräfe <konradgraefe@aol.com>, 2019
+# Konrad Gräfe <kgraefe@paktolos.net>, 2020
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 00:10+0200\n"
-"PO-Revision-Date: 2019-06-30 19:04+0000\n"
-"Last-Translator: Konrad Gräfe <konradgraefe@aol.com>, 2019\n"
+"POT-Creation-Date: 2020-04-10 23:17+0200\n"
+"PO-Revision-Date: 2020-04-10 21:18+0000\n"
+"Last-Translator: Konrad Gräfe <kgraefe@paktolos.net>, 2020\n"
 "Language-Team: German (https://www.transifex.com/kgraefe/teams/100738/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,105 +21,104 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/plugin.c:226
+#: ../src/plugin.c:229
 msgid "Current Master Password"
 msgstr "Aktuelles Master-Passwort"
 
-#: ../src/plugin.c:234
+#: ../src/plugin.c:237
 msgid "New Master Password"
 msgstr "Neues Master-Passwort"
 
-#: ../src/plugin.c:241
+#: ../src/plugin.c:244
 msgid "Confirmation"
 msgstr "Bestätigung"
 
-#: ../src/plugin.c:248
+#: ../src/plugin.c:251
 msgid "Security Level"
 msgstr "Sicherheitsstufe"
 
 #. The indices MUST correspond to enum MasterKeySecurity!
-#: ../src/plugin.c:251
+#: ../src/plugin.c:254
 msgid "Interactive (fastest)"
 msgstr "Interaktiv (schnellste)"
 
-#: ../src/plugin.c:252
+#: ../src/plugin.c:255
 msgid "Moderate"
 msgstr "Moderat"
 
-#: ../src/plugin.c:253
+#: ../src/plugin.c:256
 msgid "Sensitive (slowest)"
 msgstr "Sensibel (langsamste)"
 
-#: ../src/plugin.c:266 ../src/plugin.c:276 ../src/plugin.c:321
-#: ../src/plugin.c:331 ../src/plugin.c:374 ../src/plugin.c:386
+#: ../src/plugin.c:269 ../src/plugin.c:279 ../src/plugin.c:324
+#: ../src/plugin.c:334 ../src/plugin.c:421 ../src/plugin.c:434
 msgid "Pidgin Master Password"
 msgstr "Pidgin Master-Passwort"
 
-#: ../src/plugin.c:266
+#: ../src/plugin.c:269
 msgid "Enter new master password:"
 msgstr "Neues Master-Passwort eingeben:"
 
-#: ../src/plugin.c:267 ../src/plugin.c:322
+#: ../src/plugin.c:270 ../src/plugin.c:325
 msgid "OK"
 msgstr "OK"
 
-#: ../src/plugin.c:268 ../src/plugin.c:323
+#: ../src/plugin.c:271 ../src/plugin.c:326
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: ../src/plugin.c:311 ../src/plugin.c:568
+#: ../src/plugin.c:314 ../src/plugin.c:400 ../src/plugin.c:637
 msgid "Master Password"
 msgstr "Master-Passwort"
 
-#: ../src/plugin.c:321
+#: ../src/plugin.c:324
 msgid "Enter master password:"
 msgstr "Master-Passwort eingeben:"
 
-#: ../src/plugin.c:374 ../src/plugin.c:386
-msgid "Delete Master Password?"
-msgstr "Master-Passwort löschen?"
+#: ../src/plugin.c:407
+msgid "Account Passwords:"
+msgstr "Konto-Passwörter:"
 
-#. Default to "Delete"
-#: ../src/plugin.c:377
-msgid "_Yes"
-msgstr "_Ja"
-
-#: ../src/plugin.c:378
-msgid "_No"
-msgstr "_Nein"
-
-#: ../src/plugin.c:380
-msgid "Delete account passwords"
-msgstr "Konto-Passwörter löschen"
-
-#: ../src/plugin.c:381
-msgid "Store account passwords in plaintext"
-msgstr "Konto-Passwörter unverschlüsselt speichern"
-
-#: ../src/plugin.c:387
-msgid "This will delete all encrypted account passwords."
-msgstr "Alle Konto-Passwörter werden gelöscht."
-
-#: ../src/plugin.c:419
-msgid "Lock"
-msgstr "Sperren"
-
-#: ../src/plugin.c:422
-msgid "Change"
-msgstr "Ändern"
-
-#: ../src/plugin.c:425 ../src/plugin.c:432
+#: ../src/plugin.c:410 ../src/plugin.c:477 ../src/plugin.c:484
 msgid "Delete"
 msgstr "Löschen"
 
-#: ../src/plugin.c:429
+#: ../src/plugin.c:413
+msgid "Store in plaintext"
+msgstr "Im Klartext speichern"
+
+#: ../src/plugin.c:421 ../src/plugin.c:434
+msgid "Delete Master Password?"
+msgstr "Master-Passwort löschen?"
+
+#: ../src/plugin.c:423
+msgid "_Yes"
+msgstr "_Ja"
+
+#: ../src/plugin.c:424
+msgid "_No"
+msgstr "_Nein"
+
+#: ../src/plugin.c:435
+msgid "This will delete all encrypted account passwords."
+msgstr "Alle Konto-Passwörter werden gelöscht."
+
+#: ../src/plugin.c:471
+msgid "Lock"
+msgstr "Sperren"
+
+#: ../src/plugin.c:474
+msgid "Change"
+msgstr "Ändern"
+
+#: ../src/plugin.c:481
 msgid "Unlock"
 msgstr "Entsperren"
 
-#: ../src/plugin.c:436
+#: ../src/plugin.c:488
 msgid "Initialize"
 msgstr "Initialisieren"
 
-#: ../src/plugin.c:569 ../src/plugin.c:570
+#: ../src/plugin.c:638 ../src/plugin.c:639
 msgid "Protect account passwords by a master password."
 msgstr "Konto-Passwörter mit einem Master-Passwort schützen."
