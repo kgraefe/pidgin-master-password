@@ -38,9 +38,10 @@ Download the ZIP file from the [latest release][6] and extract the contents of
 Optionally: If you use a password manager's auto-type function to fill in the
 master password you may need to update Gtk+ as the version shipped with Pidgin
 does not allow that. Simply extract
-[gtk+-bundle_2.24.10-20120208_win32.zip][12] (SHA1
-`895072c22f5bfd4ac9054d48d62d6c8b2a487098`) into the `Gtk` directory in
-Pidgin's installation directory (e.g. `C:\Program Files (x86)\Pidgin\Gtk`).
+[gtk+-bundle_2.24.10-20120208_win32.zip][12] (SHA256
+`f5ce173f50690c2dc7fa91b9b5c80c7422cde3ee23610b53e0929557dd8ee67e`) into the
+`Gtk` directory in Pidgin's installation directory (e.g. `C:\Program Files
+(x86)\Pidgin\Gtk`).
 
 ### Installation on Linux
 If your distribution has the plugin in its repository you can use that.
@@ -158,4 +159,4 @@ You could also help translating this project on [Transifex][7].
 [9]: https://github.com/kgraefe/pidgin-windev
 [10]: https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-mingw.tar.gz
 [11]: https://brew.sh
-[12]: https://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.gnome.org/binaries/win32/gtk+/2.24/gtk+-bundle_2.24.10-20120208_win32.zip
+[12]: https://ftp.gnome.org/pub/GNOME/binaries/win32/gtk+/2.24/gtk+-bundle_2.24.10-20120208_win32.zip
