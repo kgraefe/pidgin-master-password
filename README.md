@@ -49,7 +49,7 @@ Otherwise you must build the plugin [from source](#building-on-linux).
 
 ### Installation on MacOS
 On MacOS this plugin is tested on Pidgin installed through [Homebrew][11] only.
-For now the plugin must be installed [from source](#building-on-macos).
+Use my [pidgin-plugins brew tab][13] to install it.
 
 ## Encryption details
 All operations are done with high-level [libsodium][2] functions so that best
@@ -160,3 +160,4 @@ You could also help translating this project on [Transifex][7].
 [10]: https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-mingw.tar.gz
 [11]: https://brew.sh
 [12]: https://ftp.gnome.org/pub/GNOME/binaries/win32/gtk+/2.24/gtk+-bundle_2.24.10-20120208_win32.zip
+[13]: https://github.com/kgraefe/homebrew-pidgin-plugins
