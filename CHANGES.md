@@ -1,5 +1,8 @@
 # Pidgin Master Password Changes
 
+## Version 1.1 (in development)
+- Add Ukrainian translation
+
 ## Version 1.0 (2020-04-10)
 - Fix password prompts from protocols that always require a password from
   popping into the foreground on startup. (Github #9)
