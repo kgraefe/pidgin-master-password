@@ -1,6 +1,6 @@
 # Pidgin Master Password Changes
 
-## Version 1.1 (in development)
+## Version 1.1 (2020-12-11)
 - Add Ukrainian translation
 
 ## Version 1.0 (2020-04-10)
